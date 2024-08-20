@@ -1,0 +1,73 @@
+services:
+  # Nats Server container
+  nats-server:
+    container_name: nats-server
+    image: nats:2.10.18
+    ports:
+      - "8222:8222"
+
+  # Client Gateway container (API)
+  client-gateway:
+    container_name: client-gateway
+    build: ./client-gateway
+    volumes:
+      - ./client-gateway/src:/usr/src/app/src
+    ports:
+      - "${CLIENT_GATEWAY_PORT}:${CLIENT_GATEWAY_PORT}"
+    command: npm run start:dev
+    environment:
+      - PORT=${CLIENT_GATEWAY_PORT}
+      - NATS_SERVERS=${NATS_SERVERS}
+      - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID}
+      - GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET}
+      - GOOGLE_CLIENT_CALLBACK_URL=${GOOGLE_CLIENT_CALLBACK_URL}
+
+  # Products Store Database (Postgres)
+  products-store-db:
+    container_name: products-store-db
+    image: postgres:16.2
+    restart: always
+    # this local path is the local volume from the container, for persistent data
+    volumes:
+      - ./products-store-ms/postgres-data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_DB=${POSTGRES_DB}
+
+  # Products Store (Microservice)
+  products-store-ms:
+    depends_on:
+      - products-store-db
+    container_name: products-store-ms
+    build: ./products-store-ms
+    volumes:
+      - ./products-store-ms/src:/usr/src/app/src
+    command: npm run start:dev
+    environment:
+      - PORT=${PRODUCTS_STORE_MS_PORT}
+      - NATS_SERVERS=${NATS_SERVERS}
+      - DATABASE_URL=${DATABASE_URL}
+      - JWT_SECRET=${JWT_SECRET}
+      - JWT_EXPIRE_TIME=${JWT_EXPIRE_TIME}
+
+  # Payments (Microservice)
+  payments-ms:
+    depends_on:
+      - products-store-db
+    container_name: payments-ms
+    build: ./payments-ms
+    volumes:
+      - ./payments-ms/src:/usr/src/app/src
+    ports:
+      - ${PAYMENTS_MS_PORT}:${PAYMENTS_MS_PORT}
+    command: npm run start:dev
+    environment:
+      - PORT=${PAYMENTS_MS_PORT}
+      - NATS_SERVERS=${NATS_SERVERS}
+      - STRIPE_SECRET=${STRIPE_SECRET}
+      - STRIPE_SUCCESS_URL=${STRIPE_SUCCESS_URL}
+      - STRIPE_CANCEL_URL=${STRIPE_CANCEL_URL}
+      - STRIPE_ENDPOINT_SECRET=${STRIPE_ENDPOINT_SECRET}
