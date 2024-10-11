@@ -1,0 +1,82 @@
+services:
+  # Nats Server container
+  nats-server:
+    container_name: nats-server
+    image: nats:2.10.18
+
+  # Client Gateway container (API)
+  client-gateway:
+    container_name: client-gateway
+    build: 
+      context: ./client-gateway
+      dockerfile: dockerfile.prod
+    # volumes:  #!no volumes required in production container
+    #   - ./client-gateway/src:/usr/src/app/src
+    # image: yourImage/registryLocation
+    ports:
+      - "${CLIENT_GATEWAY_PORT}:${CLIENT_GATEWAY_PORT}"
+    # command: npm run start:dev  #! command is not required, now we are using dist/build to run project
+    environment:
+      - PORT=${CLIENT_GATEWAY_PORT}
+      - NATS_SERVERS=${NATS_SERVERS}
+      - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID}
+      - GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET}
+      - GOOGLE_CLIENT_CALLBACK_URL=${GOOGLE_CLIENT_CALLBACK_URL}
+      - CLOUDINARY_CLOUD_NAME=${CLOUDINARY_CLOUD_NAME}
+      - CLOUDINARY_API_KEY=${CLOUDINARY_API_KEY}
+      - CLOUDINARY_API_SECRET=${CLOUDINARY_API_SECRET}
+      - CLOUDINARY_URL=${CLOUDINARY_URL}
+
+  # Products Store Database (Postgres)
+  # products-store-db:
+  #   container_name: products-store-db
+  #   image: postgres:16.2
+  #   restart: always
+  #   # this local path is the local volume from the container, for persistent data
+  #   volumes:
+  #     - ./products-store-ms/postgres-data:/var/lib/postgresql/data
+  #   ports:
+  #     - "5432:5432"
+  #   environment:
+  #     - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+  #     - POSTGRES_USER=${POSTGRES_USER}
+  #     - POSTGRES_DB=${POSTGRES_DB}
+
+  # Products Store (Microservice)
+  products-store-ms:
+    container_name: products-store-ms
+    build: 
+      context: ./products-store-ms
+      dockerfile: dockerfile.prod
+      args:
+        - BUILD_DATABASE_URL=${BUILD_DATABASE_URL}  # Argumento en tiempo de construccion, necesario para la construccion de la imagen en tiempo de ejecucion
+    # command: npm run start:dev
+    # image: yourImage/registryLocation
+    environment:
+      - PORT=${PRODUCTS_STORE_MS_PORT}
+      - NATS_SERVERS=${NATS_SERVERS}
+      - DATABASE_URL=${BUILD_DATABASE_URL}
+      - JWT_SECRET=${JWT_SECRET}
+      - JWT_EXPIRE_TIME=${JWT_EXPIRE_TIME}
+
+  # Payments (Microservice)
+  payments-ms:
+    # products-store-db not required anymore, pord Database is deployed on internet
+    # depends_on:
+    #   - products-store-db
+    container_name: payments-ms
+    build: 
+      context: ./payments-ms
+      dockerfile: dockerfile.prod
+    # volumes:
+    #   - ./payments-ms/src:/usr/src/app/src
+    ports:
+      - ${PAYMENTS_MS_PORT}:${PAYMENTS_MS_PORT}
+    # command: npm run start:dev
+    environment:
+      - PORT=${PAYMENTS_MS_PORT}
+      - NATS_SERVERS=${NATS_SERVERS}
+      - STRIPE_SECRET=${STRIPE_SECRET}
+      - STRIPE_SUCCESS_URL=${STRIPE_SUCCESS_URL}
+      - STRIPE_CANCEL_URL=${STRIPE_CANCEL_URL}
+      - STRIPE_ENDPOINT_SECRET=${STRIPE_ENDPOINT_SECRET}
