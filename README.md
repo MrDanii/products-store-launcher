@@ -17,3 +17,7 @@ It runs following services:
 4. Run command: `docker compose up --build`
 
 ## Production Launcher
+
+1. Clone Project Repository
+2. Change branch to (cloud-build) branch
+3. Run command: `docker compose -f docker-compose.prod.yml up --build` to run production version of docker compose
