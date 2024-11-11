@@ -22,6 +22,8 @@ All services were mounted in Docker Containers.
 2. Create a **.env** file based on **.env.template** file
 3. Run command: `git submodule update --init --recursive` to build submodule folders
 4. Run command: `docker compose up --build`
+5. Execute seed to generate starting data in case you need it. 
+you can click [here](https://documenter.getpostman.com/view/3761693/2sAY52eLE3) for some examples in API usage. This is not an API Documentation, but it can help as a guide
 
 __*Note*__: when you execute `docker compose up --build` a folder "postgres-data" is created inside git submodule "products-store-ms" (this mantains database configuration and data)
 In case you need to change database configuration, don't forget to delete that folder to force the container to change Database server to take
