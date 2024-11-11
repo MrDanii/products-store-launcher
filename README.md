@@ -1,6 +1,6 @@
 # Products Store Backend
 This Launcher creates a container that runs various services to run Application Backend.
-All services were mounted in Docker Containers
+All services were mounted in Docker Containers.
 
 #### It runs following services:
 
@@ -29,3 +29,15 @@ All services were mounted in Docker Containers
 2. Change branch to (cloud-build) branch
 3. Run command: `docker compose -f docker-compose.prod.yml --env-file .env.prod up --build` to run production version of docker compose. 
 __*Note*__: if your didn't create ".env.prod" file only run `docker compose -f docker-compose.prod.yml up --build`
+
+#### Quick View on prisma schema and Entity Relation Diagram
+
+- Database was made with prisma, you can see table definition on __schema.prisma__ file on products-store-ms git submodule.
+to change table or fields it's necesarry generate respective migration
+
+<p align="center">
+  <a href="https://github.com/MrDanii/products-store-launcher" target="blank"><img src="https://res.cloudinary.com/dbrepifea/image/upload/v1730060660/er-database_ijmgni.png" width="100%" alt="Nest Logo" /></a>
+</p>
+
+- __Note__: This diagram was generated with ([Software Ideas Modeler](https://www.softwareideas.net/en/download))
+- *Since this app project was made with learning purposes, __Software__ Ideas Modeler can be used without violating the non-commercial-use clause
